@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>توقيع عهدة الأصل</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Tajawal',sans-serif;background:linear-gradient(135deg,#0a2420,#0f1f3d);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem}
+.card{background:#fff;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.header{background:linear-gradient(135deg,#0d2e2a,#1a9c78);padding:1.5rem;text-align:center;color:#fff}
+.header h1{font-size:1.2rem;font-weight:800;margin:0}
+.header p{font-size:.8rem;opacity:.8;margin-top:.25rem}
+.green-bar{height:4px;background:linear-gradient(90deg,#3ecf8e,#1a9c78)}
+.body{padding:1.5rem}
+.info-box{background:#f0fdf4;border:1px solid #c8e6dc;border-radius:8px;padding:1rem;margin-bottom:1.25rem}
+.info-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #e0efea;font-size:.82rem}
+.info-row:last-child{border:none}
+.info-label{color:#6b9e90}
+.info-value{font-weight:700;color:#0d2e2a}
+.sig-label{display:block;font-size:.82rem;font-weight:700;color:#333;margin-bottom:.5rem}
+.canvas-wrap{border:2px dashed #1a9c78;border-radius:10px;background:#fafffe;position:relative;touch-action:none}
+canvas{display:block;width:100%;cursor:crosshair}
+.hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:.85rem;pointer-events:none;transition:opacity .3s}
+.hint.hide{opacity:0}
+.clear-btn{background:#f1f5f9;border:1px solid #e2e8f0;color:#666;border-radius:6px;padding:.4rem .9rem;font-size:.75rem;cursor:pointer;font-family:'Tajawal',sans-serif;margin-top:.5rem}
+.agree-row{display:flex;align-items:flex-start;gap:.75rem;margin:1.25rem 0;padding:1rem;background:#fff8e1;border-radius:8px;border:1px solid #ffe082}
+.agree-row input{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:#0d2e2a;cursor:pointer}
+.agree-row label{font-size:.8rem;color:#555;line-height:1.7;cursor:pointer}
+.submit-btn{width:100%;background:linear-gradient(135deg,#0d2e2a,#1a9c78);color:#fff;border:none;border-radius:10px;padding:1rem;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .2s;margin-top:.5rem}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.status{text-align:center;padding:2rem;display:none;flex-direction:column;align-items:center;gap:1rem}
+.status-icon{font-size:3rem}
+.status h2{color:#0d2e2a;font-size:1.2rem}
+.status p{color:#666;font-size:.85rem}
+.err-msg{background:#fff0f0;border:1px solid #ffcccc;border-radius:8px;padding:1rem;margin-bottom:1rem;color:#c00;font-size:.82rem;display:none;text-align:center}
+.footer{text-align:center;color:#999;font-size:.7rem;padding:1rem;border-top:1px solid #eee}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <h1>📋 عهدة استلام أصل</h1>
+    <p>Asset Handover — Riyadh Schools</p>
+  </div>
+  <div class="green-bar"></div>
+  <div class="body" id="main-body">
+    <div class="err-msg" id="err-msg"></div>
+    <div class="info-box">
+      <div class="info-row"><span class="info-label">المستلم</span><span class="info-value" id="i-name">—</span></div>
+      <div class="info-row"><span class="info-label">الرقم التسلسلي</span><span class="info-value" id="i-sn">—</span></div>
+      <div class="info-row"><span class="info-label">الموديل</span><span class="info-value" id="i-model">—</span></div>
+      <div class="info-row"><span class="info-label">الموقع</span><span class="info-value" id="i-location">—</span></div>
+      <div class="info-row"><span class="info-label">تاريخ التسليم</span><span class="info-value" id="i-date">—</span></div>
+    </div>
+    <label class="sig-label">✍ التوقيع</label>
+    <div class="canvas-wrap" style="position:relative">
+      <canvas id="sig-canvas" height="160"></canvas>
+      <div class="hint" id="hint">وقّع هنا بإصبعك أو الماوس</div>
+    </div>
+    <button class="clear-btn" onclick="clearSig()">↺ مسح</button>
+    <div class="agree-row">
+      <input type="checkbox" id="agree" onchange="checkReady()">
+      <label for="agree">أقرّ باستلام الأصل المذكور أعلاه وأتحمل المسؤولية الكاملة عن المحافظة عليه وإعادته عند الطلب.</label>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submit()" disabled>✅ تأكيد التوقيع وإرساله</button>
+  </div>
+  <div class="status" id="done">
+    <div class="status-icon">✅</div>
+    <h2>تم التوقيع بنجاح!</h2>
+    <p>تم تسجيل توقيعك وإرساله لإدارة تقنية المعلومات.</p>
+    <p style="color:#999;font-size:.75rem">يمكنك إغلاق هذه الصفحة.</p>
+  </div>
+  <div class="status" id="err-status">
+    <div class="status-icon">❌</div>
+    <h2 id="err-title">خطأ</h2>
+    <p id="err-body"></p>
+  </div>
+  <div class="footer">Riyadh Schools IT Department — Development: Abdullah Al-Otaibi</div>
+</div>
+<script>
+const token=new URLSearchParams(location.search).get('token');
+async function load(){
+  try{
+    const r=await fetch(`/api/sign/${token}`);const d=await r.json();
+    if(!r.ok){showErr(d.error||'رابط غير صالح',d.signed?'تم التوقيع مسبقاً.':'');return;}
+    document.getElementById('i-name').textContent=d.name||'—';
+    document.getElementById('i-sn').textContent=d.sn||'—';
+    document.getElementById('i-model').textContent=d.model||'—';
+    document.getElementById('i-location').textContent=d.location||'—';
+    document.getElementById('i-date').textContent=d.date||'—';
+  }catch(e){showErr('تعذّر الاتصال','تأكد من الاتصال وحاول مجدداً.');}
+}
+function showErr(t,b){
+  document.getElementById('main-body').style.display='none';
+  const s=document.getElementById('err-status');s.style.display='flex';
+  document.getElementById('err-title').textContent=t;
+  document.getElementById('err-body').textContent=b;
+}
+const canvas=document.getElementById('sig-canvas');
+const ctx=canvas.getContext('2d');
+let drawing=false,hasSig=false;
+function resize(){canvas.width=canvas.parentElement.clientWidth;canvas.height=160;ctx.strokeStyle='#0d2e2a';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';}
+resize();window.addEventListener('resize',resize);
+function pos(e){const r=canvas.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+canvas.addEventListener('mousedown',e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();mark();});
+canvas.addEventListener('mouseup',()=>drawing=false);
+canvas.addEventListener('mouseleave',()=>drawing=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();mark();},{passive:false});
+canvas.addEventListener('touchend',()=>drawing=false);
+function mark(){if(!hasSig){hasSig=true;document.getElementById('hint').classList.add('hide');checkReady();}}
+function clearSig(){ctx.clearRect(0,0,canvas.width,canvas.height);hasSig=false;document.getElementById('hint').classList.remove('hide');checkReady();}
+function checkReady(){document.getElementById('submit-btn').disabled=!(hasSig&&document.getElementById('agree').checked);}
+async function submit(){
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='⏳ جاري الإرسال...';
+  try{
+    const r=await fetch(`/api/sign/${token}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({signature:canvas.toDataURL('image/png')})});
+    const d=await r.json();
+    if(!r.ok){showErr(d.error||'خطأ','');return;}
+    document.getElementById('main-body').style.display='none';
+    document.getElementById('done').style.display='flex';
+  }catch(e){btn.disabled=false;btn.textContent='✅ تأكيد التوقيع';document.getElementById('err-msg').style.display='block';document.getElementById('err-msg').textContent='خطأ — حاول مجدداً';}
+}
+if(!token)showErr('رابط غير صالح','لا يوجد رمز في الرابط.');
+else load();
+</script>
+</body>
+</html>
